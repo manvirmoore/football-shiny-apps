@@ -13,14 +13,22 @@ end_year <- if (as.numeric(format(Sys.Date(),"%m")) > 7) {
 }
 
 #get the urls
-current_prem <- fb_league_urls(country = "ENG", gender = "M", season_end_year = 2025) #make this dynamic
-all_team_urls <- c(strsplit(fb_teams_urls(current_prem),"/n"))
-bha_url <- all_team_urls[grepl("Brighton",all_team_urls, fixed = TRUE)]
-bha_url <- bha_url[[1]]
+current_prem_url <- fb_league_urls(country = "ENG", gender = "M", season_end_year = 2025) #make this dynamic
+all_team_urls <- c(strsplit(fb_teams_urls(current_prem_url),"/n"))
+bha_url <- all_team_urls[grepl("Brighton", all_team_urls, fixed = TRUE)][[1]]
 
-#create a table of players
-bha_players <- strsplit(fb_player_urls(bha_url), "/n")
+stats_list <- c("player_name", "Season", "Squad", "Comp", "MP", "Gls", "Ast", "G+A" ) #fill this with the desired columns
 
-player1_stats <- fb_player_season_stats(bha_players[[1]], stat_type = "standard", national = FALSE, time_pause = 3) # make this a loop
-# this give a list of past seasons and teams too. need to convert all of this into tibbles i think. we want them all appended with the player name on the left. 
-#add also the record against each team hone and awat this season
+
+#create a list of players
+players <- strsplit(fb_player_urls(bha_url), "/n")
+player_stats <- data.frame()
+
+for (i in 1:length(players)) { 
+player_stats <- rbind(player_stats, fb_player_season_stats(players[[i]], stat_type = "standard", national = FALSE, time_pause = 10)[stats_list])
+} # make this a loop, limit the results
+
+write_csv(player_stats, file = "player_stats.csv")
+
+#add also the record against each team home and away this season
+
